@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseAuth
 
 class LoginController: UIViewController {
     
@@ -43,6 +45,7 @@ class LoginController: UIViewController {
     private let loginButtoon: AuthButton = {
         let button = AuthButton(type: .system)
         button.setTitle("Log in", for: .normal)
+        button.addTarget(self, action: #selector(handleSignIn), for: .touchUpInside)
         return button
     }()
     
@@ -67,10 +70,29 @@ class LoginController: UIViewController {
         super.viewDidLoad()
         
         ConfigureUI()
-        
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
     }
     
     // MARK: - Selector
+    
+    @objc func handleSignIn(){
+        guard let email = emailTextField.text else { return }
+        guard let password = passwordTextField.text else { return }
+        
+        Auth.auth().signIn(withEmail: email, password: password) { (ref, error) in
+            if let error = error {
+                print("DEBUG: Failed to sign in user with error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let controller = UIApplication.shared.keyWindow?.rootViewController as? HomeController else { return }
+            controller.configureUI()
+            self.dismiss(animated: true, completion: nil)
+        }
+    }
     
     @objc func handleShowSignUp(){
         let controller = SignUpController()
